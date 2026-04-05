@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { deleteTransaction } from "@/app/actions/transactions";
 import { Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface DeleteTransactionButtonProps {
   transactionId: string;
@@ -18,9 +19,15 @@ export function DeleteTransactionButton({
 
   async function handleDelete() {
     setLoading(true);
-    await deleteTransaction(transactionId);
+    const result = await deleteTransaction(transactionId);
     setLoading(false);
     setConfirming(false);
+    
+    if (result?.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Transação excluída!");
+    }
   }
 
   if (confirming) {

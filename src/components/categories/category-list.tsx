@@ -2,6 +2,7 @@
 
 import { CategoryForm } from "./category-form";
 import { DeleteCategoryDialog } from "./delete-category-dialog";
+import { LayoutGrid } from "lucide-react";
 
 interface Category {
   id: string;
@@ -18,12 +19,14 @@ interface CategoryListProps {
 export function CategoryList({ categories }: CategoryListProps) {
   if (categories.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 rounded-3xl border border-dashed border-zinc-800">
-        <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-2xl mb-4 grayscale opacity-50">
-          📁
+      <div className="flex flex-col items-center justify-center py-20 text-center gap-3 bg-zinc-900/20 border border-zinc-800/40 rounded-2xl">
+        <div className="w-14 h-14 rounded-full bg-zinc-900 flex items-center justify-center mb-2 shadow-inner shadow-black/40">
+          <LayoutGrid className="w-6 h-6 text-zinc-500" />
         </div>
-        <p className="text-zinc-500 font-medium italic">Nenhuma categoria encontrada.</p>
-        <p className="text-zinc-600 text-xs mt-1">Crie sua primeira categoria personalizada acima.</p>
+        <p className="text-zinc-300 font-semibold text-lg">Nenhuma categoria encontrada</p>
+        <p className="text-sm text-zinc-500 max-w-[280px]">
+          Crie sua primeira categoria personalizada clicando no botão acima, e comece a organizar suas transações.
+        </p>
       </div>
     );
   }
@@ -64,7 +67,7 @@ export function CategoryList({ categories }: CategoryListProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <CategoryForm category={category} />
             <DeleteCategoryDialog 
               categoryId={category.id} 

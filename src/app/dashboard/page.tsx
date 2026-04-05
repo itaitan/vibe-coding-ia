@@ -43,7 +43,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const initials = user.name
     ? user.name
         .split(" ")
-        .map((n) => n[0])
+        .map((n: string) => n[0])
         .slice(0, 2)
         .join("")
         .toUpperCase()
@@ -53,7 +53,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       {/* Header */}
       <header className="border-b border-zinc-800/60 backdrop-blur-sm sticky top-0 z-10 bg-[#0a0a0f]/80">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-sm shadow-lg shadow-emerald-500/20">
               💰
@@ -84,9 +84,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-4 mb-10 border-b border-zinc-800/30 pb-4">
+        <div className="flex overflow-x-auto whitespace-nowrap items-center gap-2 sm:gap-4 mb-6 sm:mb-10 border-b border-zinc-800/30 pb-4 scrollbar-none">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-emerald-500/10 border border-emerald-500/20">
             <BarChart3 className="w-4 h-4 text-emerald-400" />
             Visão Geral
@@ -108,7 +108,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         </div>
 
         {/* Welcome & Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6 mb-8 sm:mb-10">
           <div>
             <h1 className="text-2xl font-bold text-white mb-1">
               Olá, {user.name ?? user.email.split("@")[0]} 👋
@@ -117,7 +117,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
               Aqui está o resumo da sua saúde financeira.
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <PeriodSelector />
             <TransactionForm categories={categories} />
           </div>

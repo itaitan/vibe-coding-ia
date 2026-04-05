@@ -3,6 +3,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import { PieChart as PieChartIcon } from "lucide-react";
 
 interface SpendingChartProps {
   data: {
@@ -15,8 +16,20 @@ interface SpendingChartProps {
 export function SpendingChart({ data }: SpendingChartProps) {
   if (data.length === 0) {
     return (
-      <Card className="border-zinc-800 bg-zinc-950/50 backdrop-blur-sm h-[400px] flex flex-col items-center justify-center">
-        <p className="text-zinc-500 font-medium">Nenhuma despesa registrada no período.</p>
+      <Card className="border-zinc-800 bg-zinc-950/50 backdrop-blur-sm shadow-xl flex flex-col h-[400px]">
+        <CardHeader>
+          <CardTitle className="text-zinc-100 text-lg">Distribuição de Gastos</CardTitle>
+          <CardDescription className="text-zinc-500">Despesas por categoria no mês</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-1">
+            <PieChartIcon className="w-6 h-6 text-zinc-600" />
+          </div>
+          <p className="text-zinc-400 font-medium">Sem despesas registradas</p>
+          <p className="text-sm text-zinc-600">
+            Logo que você adicionar despesas, um gráfico de pizza mostrará o seu comportamento neste mês.
+          </p>
+        </CardContent>
       </Card>
     );
   }

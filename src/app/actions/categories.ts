@@ -83,49 +83,59 @@ export async function updateCategory(
 
   const { name, color, icon } = validated.data;
 
-  // Verificar propriedade
-  const existing = await prisma.category.findFirst({
-    where: { id: categoryId, userId },
-  });
+  try {
+    // Verificar propriedade
+    const existing = await prisma.category.findFirst({
+      where: { id: categoryId, userId },
+    });
 
-  if (!existing) return { message: "Categoria não encontrada." };
+    if (!existing) return { message: "Categoria não encontrada." };
 
-  await prisma.category.update({
-    where: { id: categoryId },
-    data: { name, color, icon },
-  });
+    await prisma.category.update({
+      where: { id: categoryId },
+      data: { name, color, icon },
+    });
 
-  revalidatePath("/dashboard");
-  return { success: true };
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("[updateCategory]", error);
+    return { message: "Erro ao atualizar categoria." };
+  }
 }
 
 export async function deleteCategory(categoryId: string): Promise<{ success: boolean; message?: string }> {
   const userId = await requireUserId();
 
-  const category = await prisma.category.findFirst({
-    where: { id: categoryId, userId },
-    include: { _count: { select: { transactions: true } } },
-  });
+  try {
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, userId },
+      include: { _count: { select: { transactions: true } } },
+    });
 
-  if (!category) return { success: false, message: "Categoria não encontrada." };
+    if (!category) return { success: false, message: "Categoria não encontrada." };
 
-  // Proteger categorias padrão
-  if (category.isDefault) {
-    return { success: false, message: "Categorias padrão não podem ser excluídas." };
+    // Proteger categorias padrão
+    if (category.isDefault) {
+      return { success: false, message: "Categorias padrão não podem ser excluídas." };
+    }
+
+    // Verificar transações vinculadas
+    if (category._count.transactions > 0) {
+      return { 
+        success: false, 
+        message: `Esta categoria possui ${category._count.transactions} transações vinculadas e não pode ser excluída.` 
+      };
+    }
+
+    await prisma.category.delete({
+      where: { id: categoryId },
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("[deleteCategory]", error);
+    return { success: false, message: "Erro ao excluir categoria." };
   }
-
-  // Verificar transações vinculadas
-  if (category._count.transactions > 0) {
-    return { 
-      success: false, 
-      message: `Esta categoria possui ${category._count.transactions} transações vinculadas e não pode ser excluída.` 
-    };
-  }
-
-  await prisma.category.delete({
-    where: { id: categoryId },
-  });
-
-  revalidatePath("/dashboard");
-  return { success: true };
 }

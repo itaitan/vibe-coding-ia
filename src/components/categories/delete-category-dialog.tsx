@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { deleteCategory } from "@/app/actions/categories";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 interface DeleteCategoryDialogProps {
   categoryId: string;
@@ -33,6 +34,7 @@ export function DeleteCategoryDialog({
     const result = await deleteCategory(categoryId);
 
     if (result.success) {
+      toast.success("Categoria excluída!");
       setOpen(false);
     } else {
       setError(result.message ?? "Erro ao excluir categoria.");

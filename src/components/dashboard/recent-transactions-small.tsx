@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ReceiptText } from "lucide-react";
 import Link from "next/link";
 
 interface RecentTransactionsSmallProps {
@@ -28,7 +28,13 @@ export function RecentTransactionsSmall({ transactions }: RecentTransactionsSmal
       <CardContent className="flex-1">
         <div className="space-y-4">
           {transactions.length === 0 ? (
-            <p className="text-sm text-zinc-500 text-center py-8">Nenhuma transação encontrada.</p>
+            <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-1">
+                <ReceiptText className="w-6 h-6 text-zinc-600" />
+              </div>
+              <p className="text-zinc-400 font-medium">Nenhuma transação registrada</p>
+              <p className="text-sm text-zinc-600 max-w-[200px]">As suas movimentações recentes aparecerão aqui.</p>
+            </div>
           ) : (
             transactions.map((t) => (
               <div key={t.id} className="flex items-center justify-between group hover:bg-zinc-900/40 p-2 rounded-xl transition-all">

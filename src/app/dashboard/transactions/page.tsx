@@ -71,7 +71,7 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       {/* Header */}
       <header className="border-b border-zinc-800/60 backdrop-blur-sm sticky top-0 z-10 bg-[#0a0a0f]/80">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-sm shadow-lg shadow-emerald-500/20">
               💰
@@ -102,9 +102,9 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-4 mb-10 border-b border-zinc-800/30 pb-4">
+        <div className="flex overflow-x-auto whitespace-nowrap items-center gap-2 sm:gap-4 mb-6 sm:mb-10 border-b border-zinc-800/30 pb-4 scrollbar-none">
           <Link 
             href="/dashboard"
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900/50 transition-all"
@@ -135,7 +135,7 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
         </div>
 
         {/* Transactions List */}
-        <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-6 lg:p-8">
+        <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-4 sm:p-6 lg:p-8 overflow-x-auto">
           <TransactionList 
             transactions={transactions as any} 
             categories={categories} 

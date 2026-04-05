@@ -1,7 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +16,7 @@ import {
   type CategoryFormState,
 } from "@/app/actions/categories";
 import { Loader2, Plus, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 import { HexColorPicker } from "react-colorful";
 import EmojiPicker, { Theme } from "emoji-picker-react";
@@ -37,8 +37,7 @@ interface CategoryFormProps {
   category?: Category; // se presente → edição
 }
 
-function SubmitButton({ isEdit }: { isEdit: boolean }) {
-  const { pending } = useFormStatus();
+function SubmitButton({ isEdit, pending }: { isEdit: boolean; pending: boolean }) {
   return (
     <button
       type="submit"
@@ -74,22 +73,33 @@ export function CategoryForm({ category }: CategoryFormProps) {
   const [selectedColor, setSelectedColor] = useState(category?.color ?? PRESET_COLORS[0]);
   const [selectedIcon, setSelectedIcon] = useState(category?.icon ?? PRESET_ICONS[0]);
 
-  const [state, formAction] = useActionState<CategoryFormState, FormData>(
-    action,
-    undefined
-  );
+  const [pending, setPending] = useState(false);
+  const [state, setState] = useState<CategoryFormState>(undefined);
 
-  const prevState = useRef(state);
-  useEffect(() => {
-    if (prevState.current !== state && state?.success) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPending(true);
+    setState(undefined);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await action(undefined, formData);
+
+    setPending(false);
+
+    if (result?.success) {
+      toast.success(isEdit ? "Categoria atualizada!" : "Categoria criada!");
       setOpen(false);
       if (!isEdit) {
         setSelectedColor(PRESET_COLORS[0]);
         setSelectedIcon(PRESET_ICONS[0]);
       }
+    } else if (result?.message) {
+      toast.error(result.message);
+      setState(result);
+    } else if (result?.errors) {
+      setState(result);
     }
-    prevState.current = state;
-  }, [state, isEdit]);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -115,7 +125,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <form action={formAction} className="space-y-4 mt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           {isEdit && <input type="hidden" name="categoryId" value={category.id} />}
 
           {state?.message && (
@@ -235,7 +245,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           </div>
 
           <div className="pt-2">
-            <SubmitButton isEdit={isEdit} />
+            <SubmitButton isEdit={isEdit} pending={pending} />
           </div>
         </form>
       </DialogContent>

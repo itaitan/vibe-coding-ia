@@ -1,7 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +23,7 @@ import {
   type TransactionFormState,
 } from "@/app/actions/transactions";
 import { Loader2, Plus, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -46,8 +46,7 @@ interface TransactionFormProps {
   transaction?: Transaction; // se presente → edição
 }
 
-function SubmitButton({ isEdit }: { isEdit: boolean }) {
-  const { pending } = useFormStatus();
+function SubmitButton({ isEdit, pending }: { isEdit: boolean; pending: boolean }) {
   return (
     <button
       type="submit"
@@ -108,22 +107,34 @@ export function TransactionForm({ categories, transaction }: TransactionFormProp
     transaction ? centsToInputValue(transaction.amount) : ""
   );
 
-  const [state, formAction] = useActionState<TransactionFormState, FormData>(
-    action,
-    undefined
-  );
+  const [pending, setPending] = useState(false);
+  const [state, setState] = useState<TransactionFormState>(undefined);
 
-  // Fecha modal quando ação conclui sem erros
-  const prevState = useRef(state);
-  useEffect(() => {
-    if (prevState.current !== state && !state?.errors && !state?.message) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPending(true);
+    setState(undefined);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await action(undefined, formData);
+
+    setPending(false);
+
+    if (result?.message === "success") {
+      toast.success(isEdit ? "Transação atualizada!" : "Transação salva!");
       setOpen(false);
-      setSelectedType(transaction?.type ?? "DESPESA");
-      setSelectedCategory(transaction?.categoryId ?? "");
-      setAmount(transaction ? centsToInputValue(transaction.amount) : "");
+      if (!isEdit) {
+        setSelectedType("DESPESA");
+        setSelectedCategory("");
+        setAmount("");
+      }
+    } else if (result?.message) {
+      toast.error(result.message);
+      setState(result);
+    } else if (result?.errors) {
+      setState(result);
     }
-    prevState.current = state;
-  }, [state, transaction]);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -155,7 +166,7 @@ export function TransactionForm({ categories, transaction }: TransactionFormProp
           </DialogTitle>
         </DialogHeader>
 
-        <form action={formAction} className="space-y-4 mt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           {isEdit && (
             <input type="hidden" name="transactionId" value={transaction.id} />
           )}
@@ -303,7 +314,7 @@ export function TransactionForm({ categories, transaction }: TransactionFormProp
           </div>
 
           <div className="pt-1">
-            <SubmitButton isEdit={isEdit} />
+            <SubmitButton isEdit={isEdit} pending={pending} />
           </div>
         </form>
       </DialogContent>

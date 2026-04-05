@@ -73,32 +73,38 @@ export async function signUp(
 
   const { name, email, password } = validated.data;
 
-  // Verificar email duplicado
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    return { errors: { email: ["Este email já está cadastrado"] } };
+  try {
+    // Verificar email duplicado
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return { errors: { email: ["Este email já está cadastrado"] } };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    // Criar categorias padrão para o novo usuário
+    await prisma.category.createMany({
+      data: DEFAULT_CATEGORIES.map((cat) => ({
+        ...cat,
+        userId: user.id,
+        isDefault: true,
+      })),
+    });
+
+    await createSession(user.id);
+  } catch (error) {
+    console.error("[signUp]", error);
+    return { message: "Erro ao criar usuário. Tente novamente." };
   }
 
-  const hashedPassword = await bcrypt.hash(password, 12);
-
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-  });
-
-  // Criar categorias padrão para o novo usuário
-  await prisma.category.createMany({
-    data: DEFAULT_CATEGORIES.map((cat) => ({
-      ...cat,
-      userId: user.id,
-      isDefault: true,
-    })),
-  });
-
-  await createSession(user.id);
   redirect("/dashboard");
 }
 
@@ -121,19 +127,25 @@ export async function signIn(
 
   const { email, password } = validated.data;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!user) {
-    return { errors: { email: ["Email ou senha incorretos"] } };
+    if (!user) {
+      return { errors: { email: ["Email ou senha incorretos"] } };
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return { errors: { email: ["Email ou senha incorretos"] } };
+    }
+
+    await createSession(user.id);
+  } catch (error) {
+    console.error("[signIn]", error);
+    return { message: "Ocorreu um erro no servidor. Tente novamente." };
   }
 
-  const passwordMatch = await bcrypt.compare(password, user.password);
-
-  if (!passwordMatch) {
-    return { errors: { email: ["Email ou senha incorretos"] } };
-  }
-
-  await createSession(user.id);
   redirect("/dashboard");
 }
 

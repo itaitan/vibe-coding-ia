@@ -5,7 +5,8 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { signUp, type FormState } from "@/app/actions/auth";
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -32,6 +33,12 @@ export default function CadastroPage() {
   const [state, action] = useActionState<FormState, FormData>(signUp, undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    if (state?.message) {
+      toast.error(state.message);
+    }
+  }, [state]);
 
   return (
     <>

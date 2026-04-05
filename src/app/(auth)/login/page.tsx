@@ -5,7 +5,8 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { signIn, type FormState } from "@/app/actions/auth";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -31,6 +32,12 @@ function SubmitButton() {
 export default function LoginPage() {
   const [state, action] = useActionState<FormState, FormData>(signIn, undefined);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (state?.message) {
+      toast.error(state.message);
+    }
+  }, [state]);
 
   return (
     <>

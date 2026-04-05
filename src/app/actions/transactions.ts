@@ -62,29 +62,34 @@ export async function createTransaction(
     return { errors: validated.error.flatten().fieldErrors as Record<string, string[]> };
   }
 
-  const { description, amount, type, categoryId, date } = validated.data;
+  try {
+    const { description, amount, type, categoryId, date } = validated.data;
 
-  // Garantir que a categoria pertence ao usuário
-  const category = await prisma.category.findFirst({
-    where: { id: categoryId, userId },
-  });
-  if (!category) {
-    return { errors: { categoryId: ["Categoria inválida"] } };
+    // Garantir que a categoria pertence ao usuário
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, userId },
+    });
+    if (!category) {
+      return { message: "Categoria selecionada é inválida" };
+    }
+
+    await prisma.transaction.create({
+      data: {
+        description,
+        amount: parseToCents(amount),
+        type,
+        categoryId,
+        userId,
+        date: new Date(date),
+      },
+    });
+
+    revalidatePath("/dashboard");
+    return { message: "success" }; // Used by forms to trigger toast
+  } catch (error) {
+    console.error("[createTransaction]", error);
+    return { message: "Ocorreu um erro ao criar a transação." };
   }
-
-  await prisma.transaction.create({
-    data: {
-      description,
-      amount: parseToCents(amount),
-      type,
-      categoryId,
-      userId,
-      date: new Date(date),
-    },
-  });
-
-  revalidatePath("/dashboard");
-  return undefined;
 }
 
 // ---- Update ----
@@ -111,46 +116,57 @@ export async function updateTransaction(
     return { errors: validated.error.flatten().fieldErrors as Record<string, string[]> };
   }
 
-  const { description, amount, type, categoryId, date } = validated.data;
+  try {
+    const { description, amount, type, categoryId, date } = validated.data;
 
-  // Garantir que a transação pertence ao usuário
-  const existing = await prisma.transaction.findFirst({
-    where: { id: transactionId, userId },
-  });
-  if (!existing) return { message: "Transação não encontrada" };
+    // Garantir que a transação pertence ao usuário
+    const existing = await prisma.transaction.findFirst({
+      where: { id: transactionId, userId },
+    });
+    if (!existing) return { message: "Transação não encontrada" };
 
-  // Garantir que a categoria pertence ao usuário
-  const category = await prisma.category.findFirst({
-    where: { id: categoryId, userId },
-  });
-  if (!category) return { errors: { categoryId: ["Categoria inválida"] } };
+    // Garantir que a categoria pertence ao usuário
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, userId },
+    });
+    if (!category) return { message: "Categoria selecionada é inválida" };
 
-  await prisma.transaction.update({
-    where: { id: transactionId },
-    data: {
-      description,
-      amount: parseToCents(amount),
-      type,
-      categoryId,
-      date: new Date(date),
-    },
-  });
+    await prisma.transaction.update({
+      where: { id: transactionId },
+      data: {
+        description,
+        amount: parseToCents(amount),
+        type,
+        categoryId,
+        date: new Date(date),
+      },
+    });
 
-  revalidatePath("/dashboard");
-  return undefined;
+    revalidatePath("/dashboard");
+    return { message: "success" }; // Used to trigger toast layout change
+  } catch (error) {
+    console.error("[updateTransaction]", error);
+    return { message: "Ocorreu um erro ao atualizar a transação." };
+  }
 }
 
 // ---- Delete ----
 
-export async function deleteTransaction(transactionId: string): Promise<void> {
-  const userId = await requireUserId();
+export async function deleteTransaction(transactionId: string): Promise<{ message?: string, error?: string }> {
+  try {
+    const userId = await requireUserId();
 
-  // Garantir que a transação pertence ao usuário antes de deletar
-  const existing = await prisma.transaction.findFirst({
-    where: { id: transactionId, userId },
-  });
-  if (!existing) return;
+    // Garantir que a transação pertence ao usuário antes de deletar
+    const existing = await prisma.transaction.findFirst({
+      where: { id: transactionId, userId },
+    });
+    if (!existing) return { error: "Transação não encontrada" };
 
-  await prisma.transaction.delete({ where: { id: transactionId } });
-  revalidatePath("/dashboard");
+    await prisma.transaction.delete({ where: { id: transactionId } });
+    revalidatePath("/dashboard");
+    return { message: "success" };
+  } catch (error) {
+    console.error("[deleteTransaction]", error);
+    return { error: "Ocorreu um erro ao excluir transação." };
+  }
 }
